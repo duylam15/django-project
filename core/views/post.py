@@ -4,10 +4,16 @@ from rest_framework import viewsets, status
 from core.models import Post
 from core.serializers import PostSerializer
 from django.utils.dateparse import parse_date
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=['get'], url_path='filter')
     def filter_by_date(self, request):

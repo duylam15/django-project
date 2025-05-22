@@ -25,4 +25,5 @@ router.register(r'conversation-members', ConversationMemberViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('auth/', include('core.urls.auth')),
 ]
