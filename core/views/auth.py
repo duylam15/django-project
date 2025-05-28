@@ -80,7 +80,7 @@ class LoginView(APIView):
             samesite='Lax',
             max_age=86400
         )
-
+        
         return response
 
 
