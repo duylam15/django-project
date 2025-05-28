@@ -123,7 +123,7 @@ class LogoutView(APIView):
         return response
 
 class RefreshTokenView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # ✅ Lấy refresh token từ cookie
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token is None:
