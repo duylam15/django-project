@@ -7,3 +7,5 @@ sqlparse==0.5.1
 tzdata==2024.2
 djangorestframework-simplejwt
 mysqlclient
+psycopg2-binary
+django-cors-headers
