@@ -41,7 +41,7 @@ class LoginView(APIView):
         if not user.is_active:
             return Response({"detail": "Tài khoản đã bị khoá"}, status=403)
 
-        # Thu hồi token cũ (blacklist)
+        # ✅ Thu hồi token cũ (blacklist)
         from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
         for token in OutstandingToken.objects.filter(user=user):
             try:
@@ -53,14 +53,11 @@ class LoginView(APIView):
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
 
+        user_data = UserSerializer(user).data
         response = Response({
             "refresh": refresh_token,
             "access": access_token,
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username
-            }
+            "user": user_data
         })
 
         response.set_cookie(
@@ -80,9 +77,8 @@ class LoginView(APIView):
             samesite='Lax',
             max_age=86400
         )
-        
-        return response
 
+        return response
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]

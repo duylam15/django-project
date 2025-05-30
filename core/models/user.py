@@ -10,11 +10,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     url_avatar = models.URLField(blank=True, null=True)
     url_background = models.URLField(blank=True, null=True)
-    USER_TYPE_ROLE = [
+    USER_ROLE = [
         ('USER', 'User'),
         ('ADMIN', 'Admin'),
     ]
-    type_role = models.CharField(max_length=20, choices=USER_TYPE_ROLE, default='TEXT')
+    role = models.CharField(max_length=20, choices=USER_ROLE, default='USER')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
