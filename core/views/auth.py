@@ -8,6 +8,7 @@ from core.serializers.user import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework import status
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 User = get_user_model()
 
@@ -20,6 +21,7 @@ class RegisterView(generics.CreateAPIView):
         serializer.save(is_active=True)
 
 
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -27,59 +29,99 @@ class LoginView(APIView):
         identifier = request.data.get("email") or request.data.get("username")
         password = request.data.get("password")
 
+        # Check missing fields
+        if not identifier or not password:
+            return Response(
+                {
+                    "status": 400,
+                    "code": "missing_field",
+                    "detail": "Vui lòng nhập tài khoản và mật khẩu."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check user existence
         try:
             user = User.objects.get(email=identifier)
         except User.DoesNotExist:
             try:
                 user = User.objects.get(username=identifier)
             except User.DoesNotExist:
-                return Response({"detail": "Tài khoản không tồn tại"}, status=401)
+                return Response(
+                    {
+                        "status": 401,
+                        "code": "user_not_found",
+                        "detail": "Tài khoản không tồn tại."
+                    },
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
+        # Check password
         if not user.check_password(password):
-            return Response({"detail": "Sai mật khẩu"}, status=401)
+            return Response(
+                {
+                    "status": 401,
+                    "code": "invalid_password",
+                    "detail": "Sai mật khẩu."
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
+        # Check active status
         if not user.is_active:
-            return Response({"detail": "Tài khoản đã bị khoá"}, status=403)
+            return Response(
+                {
+                    "status": 403,
+                    "code": "account_locked",
+                    "detail": "Tài khoản đã bị khoá."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        # ✅ Thu hồi token cũ (blacklist)
-        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        # Blacklist old tokens (logout all sessions)
         for token in OutstandingToken.objects.filter(user=user):
             try:
                 BlacklistedToken.objects.get_or_create(token=token)
-            except:
+            except Exception:
                 pass
 
+        # Issue new tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
-
         user_data = UserSerializer(user).data
-        response = Response({
-            "refresh": refresh_token,
-            "access": access_token,
-            "user": user_data
-        })
 
+        response = Response(
+            {
+                "status": 200,
+                "code": "login_success",
+                "detail": "Đăng nhập thành công.",
+                "refresh": refresh_token,
+                "access": access_token,
+                "user": user_data,
+            },
+            status=status.HTTP_200_OK
+        )
+
+        # Set cookies
         response.set_cookie(
             key='access_token',
             value=access_token,
             httponly=True,
             secure=False,
             samesite='Lax',
-            max_age=300
+            max_age=300  # 5 phút
         )
-
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
             secure=False,
             samesite='Lax',
-            max_age=86400
+            max_age=86400  # 1 ngày
         )
 
         return response
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
