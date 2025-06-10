@@ -51,7 +51,7 @@ class LoginView(APIView):
                     {
                         "status": 401,
                         "code": "user_not_found",
-                        "detail": "Tài khoản không tồn commit 2."
+                        "detail": "Tài khoản không tồn commit 1.."
                     },
                     status=status.HTTP_401_UNAUTHORIZED
                 )
