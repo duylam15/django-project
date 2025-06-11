@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'core',
     'rest_framework_simplejwt.token_blacklist',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -141,8 +142,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'core.User'
 
 REST_FRAMEWORK = {
@@ -176,3 +177,15 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = 'AKIASFUIRWB6QXNJLYJ5'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'my-django-media-bucket-123'
+AWS_S3_REGION_NAME = 'us-west-1'
+
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
+
+AWS_QUERYSTRING_AUTH = False   # để URL public không cần ký
+
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
