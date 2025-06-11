@@ -12,3 +12,4 @@ django-cors-headers
 ipdb
 boto3
 django-storages
+python-dotenv
