@@ -7,3 +7,4 @@ from .friend import Friend
 from .post_emotion import PostEmotion
 from .conversation import Conversation
 from .conversation_member import ConversationMember
+from .post_media import PostMedia

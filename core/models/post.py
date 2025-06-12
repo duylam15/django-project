@@ -8,7 +8,6 @@ class Post(models.Model):
     number_emotion = models.IntegerField(default=0)
     number_comment = models.IntegerField(default=0)
     number_share = models.IntegerField(default=0)
-    media = models.ImageField(upload_to='post_media/', blank=True, null=True)
     
     POST_VISIBILITY_CHOICES = [
         ('PUBLIC', 'Public'),

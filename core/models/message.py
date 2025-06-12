@@ -1,13 +1,16 @@
 from django.db import models
-
 class Message(models.Model):
-    conversation = models.ForeignKey('Conversation', on_delete=models.CASCADE)
-    sender = models.ForeignKey('User', on_delete=models.CASCADE)
-    content = models.TextField()
-    MEDIA_TYPE_CHOICES = [
-        ('TEXT', 'Text'),
-        ('IMAGE', 'Image'),
-        ('VIDEO', 'Video'),
+    TEXT = 'text'
+    IMAGE = 'image'
+    VIDEO = 'video'
+    MESSAGE_TYPES = [
+        (TEXT, 'Text'),
+        (IMAGE, 'Image'),
+        (VIDEO, 'Video'),
     ]
-    type_message = models.CharField(max_length=20, choices=MEDIA_TYPE_CHOICES, default='TEXT')
-    update_at = models.DateTimeField(auto_now=True)
+
+    conversation = models.ForeignKey('Conversation', on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey('User', on_delete=models.CASCADE)
+    type_message = models.CharField(max_length=10, choices=MESSAGE_TYPES, default=TEXT)
+    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
