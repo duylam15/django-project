@@ -22,3 +22,8 @@ class Post(models.Model):
         ('VIDEO', 'Video'),
     ]
     type_post = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='TEXT')
+    class Meta:
+            indexes = [
+                models.Index(fields=['user']),
+                models.Index(fields=['number_emotion']),
+            ]

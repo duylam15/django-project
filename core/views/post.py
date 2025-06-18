@@ -11,6 +11,7 @@ from core.models import Post, PostMedia
 from core.serializers import PostSerializer
 from core.helper.aws_s3 import upload_file_to_s3, delete_file_from_s3, generate_unique_filename
 from core.helper.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly, IsAuthenticatedOrReadOnly
+from django.core.cache import cache
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
@@ -105,3 +106,20 @@ class PostViewSet(viewsets.ModelViewSet):
         posts = Post.objects.filter(created_at__date__gte=from_date, created_at__date__lte=to_date)
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='hot')
+    def get_hot_posts(self, request):
+        CACHE_KEY = 'hot_posts'
+        CACHE_TIMEOUT = 60 * 5
+
+        hot_posts = cache.get(CACHE_KEY)
+        if hot_posts is not None:
+            print("🔥 Lấy hot posts từ cache!")
+            return Response(hot_posts)
+
+        print("⚡ Truy vấn DB và set cache!")
+        posts = Post.objects.order_by('number_emotion')[:10]
+        serializer = self.get_serializer(posts, many=True)
+        hot_posts = serializer.data
+        cache.set(CACHE_KEY, hot_posts, CACHE_TIMEOUT)
+        return Response(hot_posts)
