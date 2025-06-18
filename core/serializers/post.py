@@ -6,3 +6,8 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'content', 'created_at', 'media_list', 'user', 'type_post', 'visibility']
+        read_only_fields = ['user']
+        
+    def create(self, validated_data):
+            validated_data['user'] = self.context['request'].user  # 👈 Gán user từ token
+            return super().create(validated_data)

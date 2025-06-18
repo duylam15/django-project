@@ -18,6 +18,9 @@ class PostViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -67,11 +70,7 @@ class PostViewSet(viewsets.ModelViewSet):
             media.delete()
         self.perform_destroy(instance)
         return Response({"content": "Xóa thành công"}, status=status.HTTP_200_OK)
-    
-    # def get_permissions(self):
-    #     if self.action in ['list', 'retrieve']:
-    #         return [AllowAny()]
-    #     return [IsAuthenticated()]
+
 
     @action(detail=False, methods=['get'], url_path='filter')
     def filter_by_date(self, request):

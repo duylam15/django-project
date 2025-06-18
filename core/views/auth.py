@@ -20,8 +20,6 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(is_active=True)
 
-
-
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
