@@ -70,6 +70,22 @@ class PostViewSet(viewsets.ModelViewSet):
             media.delete()
         self.perform_destroy(instance)
         return Response({"content": "Xóa thành công"}, status=status.HTTP_200_OK)
+    
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        sort_param = self.request.query_params.get('sort')
+        # Ví dụ client gửi sort=-created_at,like_count
+        if sort_param:
+            fields = []
+            for f in sort_param.split(','):
+                f = f.strip()
+                if f.lstrip('-') in ['created_at', 'like_count', 'comment_count']:  # chỉ cho phép sắp xếp các trường này
+                    fields.append(f)
+            if fields:
+                queryset = queryset.order_by(*fields)
+        else:
+            queryset = queryset.order_by('-created_at')
+        return queryset
 
 
     @action(detail=False, methods=['get'], url_path='filter')
