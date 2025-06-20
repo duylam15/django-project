@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -28,3 +29,10 @@ class IsAuthenticatedOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user and request.user.is_authenticated
+
+class AllowAnyJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        try:
+            return super().authenticate(request)
+        except Exception:
+            return None  # Không raise lỗi 401

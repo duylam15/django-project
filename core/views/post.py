@@ -12,6 +12,7 @@ from core.serializers import PostSerializer
 from core.helper.aws_s3 import upload_file_to_s3, delete_file_from_s3, generate_unique_filename
 from core.helper.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly, IsAuthenticatedOrReadOnly
 from django.core.cache import cache
+import json
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
@@ -43,23 +44,37 @@ class PostViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
         if serializer.is_valid():
             post = serializer.save()
-            files = request.FILES.getlist('media')
-            if files:
-                old_medias = PostMedia.objects.filter(post=post)
-                for media in old_medias:
+
+            # ✅ Lấy danh sách media cũ cần giữ lại từ client
+            media_keep_raw = request.data.get('media_keep', '[]')
+            try:
+                media_keep_ids = json.loads(media_keep_raw)
+            except json.JSONDecodeError:
+                media_keep_ids = []
+
+            # ✅ Xoá media không còn giữ lại
+            old_medias = PostMedia.objects.filter(post=post)
+            for media in old_medias:
+                if media.id not in media_keep_ids:
                     if media.media:
                         delete_file_from_s3(media.media.name)
                     media.delete()
-                for file_obj in files:
-                    key = generate_unique_filename(file_obj.name)
-                    success = upload_file_to_s3(file_obj, key)
-                    if not success:
-                        transaction.set_rollback(True)
-                        return Response({"error": "Upload file thất bại"}, status=status.HTTP_400_BAD_REQUEST)
-                    PostMedia.objects.create(post=post, media=key)
+
+            # ✅ Upload media mới nếu có
+            files = request.FILES.getlist('media')
+            for file_obj in files:
+                key = generate_unique_filename(file_obj.name)
+                success = upload_file_to_s3(file_obj, key)
+                if not success:
+                    transaction.set_rollback(True)
+                    return Response({"error": "Upload file thất bại"}, status=status.HTTP_400_BAD_REQUEST)
+                PostMedia.objects.create(post=post, media=key)
+
             return Response(self.get_serializer(post).data, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
