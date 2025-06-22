@@ -4,12 +4,13 @@ from core.models import Comment, Post
 from core.serializers import CommentSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from core.helper.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly, IsAuthenticatedOrReadOnly
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    
     def perform_create(self, serializer):
         comment = serializer.save(user=self.request.user)
         post = comment.post

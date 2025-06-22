@@ -68,7 +68,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # ✅ Cho phép gửi cookie
-
+CORS_EXPOSE_HEADERS = ["Content-Type", "Authorization"]
 # Tuỳ chọn: cho phép cookie httpOnly (nếu frontend dùng vớiCredentials)
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
@@ -159,18 +159,26 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'core.helper.authentication.JWTAuthenticationFromCookie',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5
 }
 
 # Tuỳ chọn thêm:
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_REFRESH": "refresh_token",
+    "AUTH_COOKIE_SECURE": False,
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
 DATABASES = {
@@ -196,6 +204,18 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazo
 AWS_QUERYSTRING_AUTH = False   # để URL public không cần ký
 
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # localhost, db số 1
+        "OPTIONS": {
+            "CLIENT_CLASS": ".clientdjango_redis.DefaultClient",
+            # "PASSWORD": "your_redis_password", # Nếu có đặt mật khẩu Redis
+        }
+    }
+}
+
 
 ASGI_APPLICATION = "my_project.asgi.application"
 

@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework import status
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from core.helper.permissions import AllowAnyJWTAuthentication
 
 User = get_user_model()
 
@@ -20,11 +21,9 @@ class RegisterView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(is_active=True)
 
-
-
 class LoginView(APIView):
     permission_classes = [AllowAny]
-
+    
     def post(self, request):
         identifier = request.data.get("email") or request.data.get("username")
         password = request.data.get("password")
@@ -123,45 +122,41 @@ class LoginView(APIView):
 
         return response
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [AllowAnyJWTAuthentication]
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        refresh_token = (
-            request.data.get("refresh") or
-            request.COOKIES.get("refresh_token")
+        # refresh_token = (
+        #     request.data.get("refresh") or
+        #     request.COOKIES.get("refresh_token")
+        # )
+
+        # if not refresh_token:
+        #     return Response({"detail": "Không tìm thấy refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # try:
+        #     token = RefreshToken(refresh_token)
+        #     token.blacklist()
+        # except TokenError:
+        #     return Response({"detail": "Token không hợp lệ hoặc đã bị thu hồi."}, status=status.HTTP_400_BAD_REQUEST)
+
+        response = Response({"detail": "Đăng xuất thành công."}, status=status.HTTP_200_OK)
+        # Xóa access_token
+        response.delete_cookie(
+            "access_token",
+            path="/",  # Phải đúng path đã set khi tạo cookie
+            samesite="Lax"  # Phải giống cấu hình cookie trước đó (nếu có)
         )
-
-        if not refresh_token:
-            return Response({"detail": "Không tìm thấy refresh token."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        except TokenError:
-            return Response({"detail": "Token không hợp lệ hoặc đã bị thu hồi."}, status=status.HTTP_400_BAD_REQUEST)
-
-        response = Response({"detail": "Đăng xuất thành công."}, status=status.HTTP_205_RESET_CONTENT)
-        response.set_cookie(
-            key='access_token',
-            value="",
-            httponly=True,
-            secure=False,
-            samesite='Lax',
-            max_age=300
-        )
-
-        response.set_cookie(
-            key='refresh_token',
-            value="",
-            httponly=True,
-            secure=False,
-            samesite='Lax',
-            max_age=86400
+        # Xóa refresh_token
+        response.delete_cookie(
+            "refresh_token",
+            path="/",
+            samesite="Lax"
         )
         return response
 
 class RefreshTokenView(TokenRefreshView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # ✅ Lấy refresh token từ cookie
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token is None:
@@ -180,6 +175,7 @@ class RefreshTokenView(TokenRefreshView):
                 'access_token',
                 access_token,
                 httponly=True,
+                secure=True,
                 samesite='Lax',
                 max_age=300  # 5 phút
             )
@@ -188,6 +184,7 @@ class RefreshTokenView(TokenRefreshView):
                 'refresh_token',
                 new_refresh_token,
                 httponly=True,
+                secure=True,
                 samesite='Lax',
                 max_age=86400  # 1 ngày
             )

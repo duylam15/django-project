@@ -17,3 +17,4 @@ channels
 channels_redis
 daphne
 uvicorn
+django-redis
