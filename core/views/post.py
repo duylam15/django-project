@@ -90,3 +90,5 @@ class PostViewSet(viewsets.ModelViewSet):
         posts = Post.objects.filter(created_at__date__gte=from_date, created_at__date__lte=to_date)
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
+
+    

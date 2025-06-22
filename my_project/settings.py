@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'core',
     'rest_framework_simplejwt.token_blacklist',
     'storages',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -195,3 +196,15 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazo
 AWS_QUERYSTRING_AUTH = False   # để URL public không cần ký
 
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+
+ASGI_APPLICATION = "my_project.asgi.application"
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}

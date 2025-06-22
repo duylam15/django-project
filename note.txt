@@ -1,13 +1,1 @@
-Cách debug: thêm import pdb; pdb.set_trace() tại nơi cần debug
-	Các lệnh hay dùng nhất:
-		l (list) Hiển thị các dòng code xung quanh vị trí hiện tại
-		n (next) Chạy đến dòng tiếp theo
-		s (step) Bước vào trong hàm (nếu dòng hiện tại là lời gọi hàm)
-		c (continue) Tiếp tục chạy đến khi kết thúc hoặc breakpoint tiếp theo
-		q (quit) Thoát khỏi trình gỡ lỗi (thường dùng khi bạn xong debug)
-		p ten_bien In ra giá trị của biến (p là viết tắt của print)
-		locals() Xem tất cả biến cục bộ tại thời điểm hiện tại
-	Ví dụ
-		p request.data
-		p user
-		p response.data
+run server socket: uvicorn my_project.asgi:application --reload

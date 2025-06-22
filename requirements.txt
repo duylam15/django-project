@@ -13,3 +13,7 @@ ipdb
 boto3
 django-storages
 python-dotenv
+channels 
+channels_redis
+daphne
+uvicorn
