@@ -208,13 +208,13 @@ MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # localhost, db số 1
+        "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
-            "CLIENT_CLASS": ".clientdjango_redis.DefaultClient",
-            # "PASSWORD": "your_redis_password", # Nếu có đặt mật khẩu Redis
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",  # ✅ Sửa dòng này
         }
     }
 }
+
 
 
 ASGI_APPLICATION = "my_project.asgi.application"

@@ -4,6 +4,7 @@ from .comment import Comment
 from .message import Message
 from .notification import Notification
 from .friend import Friend
+from .friend_request import FriendRequest
 from .post_emotion import PostEmotion
 from .conversation import Conversation
 from .conversation_member import ConversationMember

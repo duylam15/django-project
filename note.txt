@@ -1,1 +1,1 @@
-run server socket: uvicorn my_project.asgi:application --reload
+uvicorn my_project.asgi:application --reload

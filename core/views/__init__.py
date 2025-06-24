@@ -7,3 +7,4 @@ from .friend import FriendViewSet
 from .post_emotion import PostEmotionViewSet
 from .conversation import ConversationViewSet
 from .conversation_member import ConversationMemberViewSet
+from .friend_request import FriendRequestViewSet

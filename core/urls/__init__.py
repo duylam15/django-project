@@ -10,6 +10,7 @@ from core.views import (
     PostEmotionViewSet,
     ConversationViewSet,
     ConversationMemberViewSet,
+    FriendRequestViewSet
 )
 
 router = DefaultRouter()
@@ -22,6 +23,7 @@ router.register(r'friends', FriendViewSet)
 router.register(r'post-emotions', PostEmotionViewSet)
 router.register(r'conversations', ConversationViewSet)
 router.register(r'conversation-members', ConversationMemberViewSet)
+router.register(r'friend-requests', FriendRequestViewSet, basename='friend-request')
 
 urlpatterns = [
     path('', include(router.urls)),
