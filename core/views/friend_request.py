@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from core.models import FriendRequest, Friend
 from core.serializers import FriendRequestSerializer
 from core.helper.notify import send_notify_socket 
+from django.db.models import Q
 
 
 class FriendRequestViewSet(viewsets.ModelViewSet):
@@ -15,7 +16,8 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
         send_notify_socket(instance.to_user.id, {
             "type": "friend_request",
             "message": f"{instance.from_user.username} đã gửi lời mời kết bạn.",
-            "request_id": instance.id
+            "request_id": instance.id,
+            "from_user_id": instance.from_user.id,  
         })
 
     @action(detail=True, methods=['post'])
@@ -58,3 +60,37 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
 
         fr.delete()  # xoá khỏi DB luôn
         return Response({'detail': 'Đã từ chối và xoá lời mời kết bạn.'})
+    
+    @action(detail=False, methods=['get'])
+    def status(self, request):
+        from_user_id = request.query_params.get('from')
+        to_user_id = request.query_params.get('to')
+
+        if not from_user_id or not to_user_id:
+            return Response({'detail': 'Thiếu tham số `from` hoặc `to`'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            from_user_id = int(from_user_id)
+            to_user_id = int(to_user_id)
+        except ValueError:
+            return Response({'detail': 'ID không hợp lệ'}, status=400)
+
+        # ✅ Kiểm tra cả 2 chiều
+        is_friend = Friend.objects.filter(
+            Q(user_id=from_user_id, friend_id=to_user_id) |
+            Q(user_id=to_user_id, friend_id=from_user_id)
+        ).exists()
+        if is_friend:
+            return Response({'status': 'friends'})
+
+        # Đã gửi lời mời
+        sent = FriendRequest.objects.filter(from_user=from_user_id, to_user=to_user_id, accepted=False, declined=False).first()
+        if sent:
+            return Response({'status': 'sent', 'request_id': sent.id})
+
+        # Đang nhận lời mời
+        received = FriendRequest.objects.filter(from_user=to_user_id, to_user=from_user_id, accepted=False, declined=False).first()
+        if received:
+            return Response({'status': 'received', 'request_id': received.id})
+
+        return Response({'status': 'none'})

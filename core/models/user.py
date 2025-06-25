@@ -8,7 +8,7 @@ class User(AbstractUser):
     is_online = models.BooleanField(default=False)
     last_active_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    url_avatar = models.URLField(blank=True, null=True)
+    avatar = models.CharField(max_length=255, blank=True, null=True) 
     url_background = models.URLField(blank=True, null=True)
     USER_ROLE = [
         ('USER', 'User'),

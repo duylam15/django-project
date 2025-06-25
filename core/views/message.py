@@ -4,11 +4,14 @@ from core.models import Message, Notification, ConversationMember
 from core.serializers import MessageSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None  # ← Tắt phân trang chỉ ở view này
 
     def perform_create(self, serializer):
         message = serializer.save(sender=self.request.user)
@@ -29,6 +32,7 @@ class MessageViewSet(viewsets.ModelViewSet):
                         "conversation_id": conversation.id,
                         "message_id": message.id,
                         "sender_id": self.request.user.id,
+                        "content": message.content,
                     }
                 }
             )
@@ -98,3 +102,9 @@ class MessageViewSet(viewsets.ModelViewSet):
                 type="delete_message",
                 content=f"{self.request.user.username} đã xóa một tin nhắn.",
             )
+
+    @action(detail=False, methods=['get'], url_path='by-conversation/(?P<conversation_id>[^/.]+)')
+    def by_conversation(self, request, conversation_id=None):
+        messages = Message.objects.filter(conversation_id=conversation_id).order_by("updated_at")
+        serializer = self.get_serializer(messages, many=True)
+        return Response(serializer.data)
