@@ -8,3 +8,4 @@ from .post_emotion import PostEmotionSerializer
 from .conversation import ConversationSerializer
 from .conversation_member import ConversationMemberSerializer
 from .friend_request import FriendRequestSerializer
+from .user import UserSearchSerializer

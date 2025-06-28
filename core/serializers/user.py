@@ -21,3 +21,16 @@ class UserSerializer(serializers.ModelSerializer):
             if obj.avatar:
                 return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{obj.avatar}"
             return None
+        
+        
+class UserSearchSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    avatar_url = serializers.SerializerMethodField()
+
+    def get_avatar_url(self, obj):
+        avatar = obj.get("avatar")
+        if avatar:
+            return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{avatar}"
+        return None

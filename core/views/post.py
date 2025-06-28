@@ -12,6 +12,11 @@ from core.serializers import PostSerializer
 from core.helper.aws_s3 import upload_file_to_s3, delete_file_from_s3, generate_unique_filename
 from core.helper.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly, IsAuthenticatedOrReadOnly
 from django.core.cache import cache
+
+from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+from django.core.cache import cache
+import time
 import json
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -138,3 +143,33 @@ class PostViewSet(viewsets.ModelViewSet):
         hot_posts = serializer.data
         cache.set(CACHE_KEY, hot_posts, CACHE_TIMEOUT)
         return Response(hot_posts)
+
+
+    @action(detail=False, methods=['get'], url_path='search')
+    def search_posts(self, request):
+        query = request.GET.get('q', '').strip()
+        page_number = request.GET.get('page', '1')
+        posts = Post.objects.all()
+
+        if query:
+            posts = posts.filter(
+                Q(content__icontains=query)
+            ).order_by('-created_at')
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        page = paginator.paginate_queryset(posts, request)
+        serializer = self.get_serializer(page, many=True)
+        search_results = serializer.data
+
+        # 👇 Gợi ý bài viết thêm nếu kết quả ít hoặc không có
+        if len(search_results) < 5:
+            suggested_posts = Post.objects.exclude(id__in=[p['id'] for p in search_results]).order_by('-number_emotion')[:3]
+            suggested_serializer = self.get_serializer(suggested_posts, many=True)
+
+            return Response({
+                "results": search_results,
+                "suggested": suggested_serializer.data
+            })
+
+        return paginator.get_paginated_response(search_results)
