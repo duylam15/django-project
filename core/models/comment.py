@@ -17,3 +17,6 @@ from django.db import models
 #     type_comment = models.CharField(max_length=20, choices=COMMENT_TYPE_CHOICES, default='NORMAL')
 
 #     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+
+
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
